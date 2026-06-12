@@ -1,0 +1,32 @@
+--Init
+npm init -y 
+npx prisma init
+
+npm install openai
+
+npx prisma format
+npx prisma validate
+npx prisma migrate dev --name init
+npx prisma migrate dev
+
+npx prisma migrate reset
+npm install csv-parser
+
+--Check
+CREATE DATABASE be_mandarin_app
+npx prisma studio
+npx tsx prisma/dataset-words/seed-word.ts
+
+--Download
+npm install prisma@6 @prisma/client@6
+npm install prisma @prisma/client dotenv
+npm install -D nodemon
+npm install express bcrypt jsonwebtoken dotenv
+npm install zod
+npm install jsonwebtoken
+npm install cors
+
+--FE
+npm install axios
+npm install @next/env
+npm install framer-motion

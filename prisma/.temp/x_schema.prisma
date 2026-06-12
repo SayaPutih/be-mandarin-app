@@ -1,0 +1,190 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+//generator client {
+//  provider = "prisma-client"
+//  output   = "../src/generated/prisma"
+//}
+
+//datasource db {
+//  provider = "postgresql"
+//}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String             @id @default(uuid())
+  email      String             @unique
+  name       String?
+  password   String
+  created_at DateTime           @default(now())
+  updated_at DateTime           @updatedAt
+  attempts   FlashCardAttempt[]
+  sentenceAttempts SentenceAttempt[]
+}
+
+
+
+model FlashCardAttempt {
+  id String @id @default(uuid())
+
+  userId String
+  wordId String
+
+  isCorrect    Boolean
+  answerTimeMs Int?
+
+  createdAt DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id])
+  word MandarinWord @relation(fields: [wordId], references: [id])
+
+  @@index([userId])
+  @@index([wordId])
+}
+
+model MandarinWord {
+  id String @id @default(uuid())
+
+  simplified String
+  pinyin String
+  pos String?
+  hskLevel Int
+
+  meanings MandarinMeaning[]
+
+  createdAt DateTime @default(now())
+}
+
+model MandarinMeaning {
+  id String @id @default(uuid())
+
+  wordId String
+
+  meaning String
+
+  word MandarinWord @relation(
+    fields: [wordId],
+    references: [id]
+  )
+
+  @@index([wordId])
+}
+
+
+model SUBTLEXMandarinData {
+  id               String  @id @default(uuid())
+  wordId String @unique
+
+  simplified String
+  traditional String
+  
+  length           Int
+
+  pinyin           String
+  pinyinInput      String
+
+  wCount           Int
+  wMillion         Float
+  log10W           Float
+
+  wCD              Int?
+  wCDPercent       Float?
+  log10CD          Float?
+
+  dominantPos      String?
+  dominantPosFreq  Float?
+
+  allPos           String?
+  allPosFreq       String?
+
+  engTranslation   String?
+
+  wordRef MandarinWord @relation(
+      fields:[wordId],
+      references:[id]
+  )
+
+  @@index([word])
+  @@index([pinyin])
+}
+
+model MandarinSentence {
+  id                 String @id @default(uuid())
+  englishTranslation String
+  hskLevel           Int
+  mandarinText       String
+  pinyin             String
+
+  attempts  SentenceAttempt[]
+}
+
+model SentenceAttempt{
+  id String @id @default(uuid())
+  sentenceId String 
+  userId String 
+
+  createdAt DateTime @default(now())
+
+  scoring Int
+  isCorrect Boolean?
+  
+  userAnswer String @db.Text
+  aiFeedback String  @db.Text
+
+  sentence MandarinSentence @relation(fields: [sentenceId], references: [id])
+  user User         @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([sentenceId])
+
+}
+
+
+//model MandarinWord {
+// id String @id @default(uuid())
+
+// simplified String
+// traditional String
+// pinyin String
+// zhuyin String?
+// meaning String
+
+// hskLevel String @map("hsk_level")
+// hskLevelMain String @map("hsk_level_main")
+
+// pos String?
+
+// frequencyHsk BigInt @map("frequency_hsk")
+// frequencyRankHsk Int @map("frequency_rank_hsk")
+
+// frequencySubtlex Float? @map("frequency_subtlex")
+// frequencyRankSubtlex Int? @map("frequency_rank_subtlex")
+
+// perMillion Float? @map("per_million")
+// logFrequency Float? @map("log_frequency")
+
+// contextDiversity Float? @map("context_diversity")
+// contextDiversityPct Float? @map("context_diversity_pct")
+// logContextDiversity Float? @map("log_context_diversity")
+
+// inSubtlex Boolean @default(false) @map("in_subtlex")
+
+// createdAt DateTime @default(now())
+// updatedAt DateTime @updatedAt
+// attempts FlashCardAttempt[]
+
+// @@index([simplified])
+// @@index([hskLevelMain])
+// @@index([frequencyRankHsk])
+// @@map("mandarin_words")
+// }

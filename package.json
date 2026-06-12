@@ -1,0 +1,41 @@
+{
+  "name": "withbackendnode-api",
+  "version": "1.0.0",
+  "description": "Backend Node",
+  "keywords": [],
+  "license": "ISC",
+  "author": "Evn",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon src/server.js"
+  },
+  "prisma": {
+    "seed-word": "tsx prisma/dataset-words/seed-word.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "bcrypt": "^6.0.0",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.6",
+    "csv-parser": "^3.2.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "groq-sdk": "^1.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.12.1",
+    "mysql": "^2.18.1",
+    "openai": "^6.41.0",
+    "prisma": "^6.19.3",
+    "server.js": "^1.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.22.4"
+  }
+}

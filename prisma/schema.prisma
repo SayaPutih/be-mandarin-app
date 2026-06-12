@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String             @id @default(uuid())
+  email            String             @unique
+  name             String?
+  password         String
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+  attempts         FlashCardAttempt[]
+  sentenceAttempts SentenceAttempt[]
+  memoryStates     WordMemoryState[]
+}
+
+model MandarinWord {
+  id String @id @default(uuid())
+
+  simplified           String  @unique
+  simplifiedNormalized String?
+
+  traditional String?
+  pinyin      String
+  pos         String?
+
+  hskLevel     Int
+  defFrequency Int
+  difficulty   Float?
+
+  radical String?
+
+  meanings MandarinMeaning[]
+  subtlex  MandarinSubtlex?
+
+  attempts     FlashCardAttempt[]
+  memoryStates WordMemoryState[]
+
+  createdAt DateTime @default(now())
+
+  @@index([hskLevel])
+}
+
+model MandarinMeaning {
+  id String @id @default(uuid())
+
+  wordId String
+
+  meaning String
+
+  word MandarinWord @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@index([wordId])
+}
+
+model MandarinSubtlex {
+  id String @id @default(uuid())
+
+  wordId String @unique
+
+  word MandarinWord @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  wordRaw String?
+  length  Int?
+
+  pinyin      String?
+  pinyinInput String?
+
+  wCount   Int?
+  wMillion Float?
+
+  log10W Float?
+
+  wCd        Int?
+  wCdPercent Float?
+
+  log10CD Float?
+
+  dominantPos     String?
+  dominantPosFreq Int?
+
+  allPos     String?
+  allPosFreq String?
+
+  englishTranslate String?
+
+  wordNormalized String?
+
+  createdAt DateTime @default(now())
+}
+
+model FlashCardAttempt {
+  id String @id @default(uuid())
+
+  userId String
+  wordId String
+
+  totalReviews Int @default(0)
+
+  correctReviews Int @default(0)
+
+  averageAnswerTimeMs Float?
+
+  lastAnswerCorrect Boolean?
+
+  lastReviewedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  logs FlashCardAttemptLog[]
+
+  user User         @relation(fields: [userId], references: [id])
+  word MandarinWord @relation(fields: [wordId], references: [id])
+
+  @@unique([userId, wordId])
+  @@index([userId])
+  @@index([wordId])
+}
+
+model FlashCardAttemptLog {
+  id                 String @id @default(uuid())
+  flashcardAttemptId String
+
+  isCorrect    Boolean
+  answerTimeMs Int?
+
+  createdAt DateTime @default(now())
+
+  flash FlashCardAttempt @relation(fields: [flashcardAttemptId], references: [id])
+
+  @@index([flashcardAttemptId])
+}
+
+model WordMemoryState {
+  id String @id @default(uuid())
+
+  userId String
+  wordId String
+
+  reviewCount Int @default(0)
+
+  rHistory String?
+  tHistory String?
+  pHistory String?
+
+  lastReviewAt     DateTime?
+  lastAnswerTimeMs Int?
+
+  averageAnswerTimeMs Float?
+
+  stability  Float?
+  difficulty Float?
+
+  predictedRecall   Float?
+  predictedHalfLife Float?
+
+  nextReviewAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User         @relation(fields: [userId], references: [id])
+  word MandarinWord @relation(fields: [wordId], references: [id])
+
+  @@unique([userId, wordId])
+  @@index([userId])
+  @@index([wordId])
+}
+
+model MandarinSentence {
+  id                 String @id @default(uuid())
+  englishTranslation String
+  hskLevel           Int
+  mandarinText       String
+  pinyin             String
+
+  attempts SentenceAttempt[]
+}
+
+model SentenceAttempt {
+  id         String @id @default(uuid())
+  sentenceId String
+  userId     String
+
+  createdAt DateTime @default(now())
+
+  scoring   Int
+  isCorrect Boolean?
+
+  userAnswer String @db.Text
+  aiFeedback String @db.Text
+
+  sentence MandarinSentence @relation(fields: [sentenceId], references: [id])
+  user     User             @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([sentenceId])
+}
