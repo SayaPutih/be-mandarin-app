@@ -15,7 +15,8 @@ export const findWordMemoryState = async (userId, wordId) => {
 
 export const createWordMemoryState = async (
   userId,
-  wordId
+  wordId,
+  dateManipulation
 ) => {
 
   console.log("Create Memory");
@@ -24,9 +25,14 @@ export const createWordMemoryState = async (
     data: {
       userId,
       wordId,
+      lastReviewAt : dateManipulation,
+      createdAt : dateManipulation,
+      updatedAt : dateManipulation
     },
   });
 };
+
+
 
 
 export const updateWordMemoryState = async (

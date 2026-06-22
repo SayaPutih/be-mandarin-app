@@ -14,7 +14,7 @@ async function loadCsv(): Promise<CsvRow[]> {
     process.cwd(),
     "prisma",
     "dataset-words",
-    "mandarin_word_dataset_final.csv"
+    "mandarin_word_dataset_final_With_difficulty.csv"
   );
 
   await new Promise<void>((resolve, reject) => {
@@ -36,7 +36,7 @@ async function loadCsv(): Promise<CsvRow[]> {
 async function main() {
   console.log("🗑 Cleaning database...");
 
-  await prisma.mandarinSubtlex.deleteMany();
+  //await prisma.mandarinSubtlex.deleteMany();
   await prisma.mandarinMeaning.deleteMany();
   await prisma.mandarinWord.deleteMany();
 
@@ -66,12 +66,6 @@ async function main() {
       data: {
         simplified,
 
-        simplifiedNormalized:
-          row["simplified_normalized"] || null,
-
-        traditional:
-          row["traditional"] || null,
-
         pinyin:
           row["pinyin"] || "",
 
@@ -84,9 +78,12 @@ async function main() {
         hskLevel:
           Number(row["hsk_level"]) || 0,
 
-        defFrequency:
-          Number(row["frequency"]) || 0,
+        lexicalDifficulty:
+          row["Difficulty_Human_PCA"]
+            ? Number(row["Difficulty_Human_PCA"])
+            : null,
       },
+
       select: {
         id: true,
       },
@@ -98,7 +95,7 @@ async function main() {
 
     const meanings =
       row["meaning"]
-        ?.split(";")
+        ?.split(/\s*;\s*/)
         .map((m) => m.trim())
         .filter(Boolean) ?? [];
 
@@ -107,83 +104,83 @@ async function main() {
       meanings,
     });
 
-    // =====================
-    // SUBTLEX
-    // =====================
+    // // =====================
+    // // SUBTLEX
+    // // =====================
 
-    if (row["subtlex_word"]) {
-      await prisma.mandarinSubtlex.create({
-        data: {
-          wordId: word.id,
+    // if (row["subtlex_word"]) {
+    //   await prisma.mandarinSubtlex.create({
+    //     data: {
+    //       wordId: word.id,
 
-          wordRaw:
-            row["subtlex_word"] || null,
+    //       wordRaw:
+    //         row["subtlex_word"] || null,
 
-          length:
-            row["subtlex_length"]
-              ? Number(row["subtlex_length"])
-              : null,
+    //       length:
+    //         row["subtlex_length"]
+    //           ? Number(row["subtlex_length"])
+    //           : null,
 
-          pinyin:
-            row["subtlex_pinyin"] || null,
+    //       pinyin:
+    //         row["subtlex_pinyin"] || null,
 
-          pinyinInput:
-            row["subtlex_pinyin_input"] || null,
+    //       pinyinInput:
+    //         row["subtlex_pinyin_input"] || null,
 
-          wCount:
-            row["subtlex_w_count"]
-              ? Number(row["subtlex_w_count"])
-              : null,
+    //       wCount:
+    //         row["subtlex_w_count"]
+    //           ? Number(row["subtlex_w_count"])
+    //           : null,
 
-          wMillion:
-            row["subtlex_w_million"]
-              ? Number(row["subtlex_w_million"])
-              : null,
+    //       wMillion:
+    //         row["subtlex_w_million"]
+    //           ? Number(row["subtlex_w_million"])
+    //           : null,
 
-          log10W:
-            row["subtlex_log10w"]
-              ? Number(row["subtlex_log10w"])
-              : null,
+    //       log10W:
+    //         row["subtlex_log10w"]
+    //           ? Number(row["subtlex_log10w"])
+    //           : null,
 
-          wCd:
-            row["subtlex_w_cd"]
-              ? Number(row["subtlex_w_cd"])
-              : null,
+    //       wCd:
+    //         row["subtlex_w_cd"]
+    //           ? Number(row["subtlex_w_cd"])
+    //           : null,
 
-          wCdPercent:
-            row["subtlex_w_cd_percent"]
-              ? Number(row["subtlex_w_cd_percent"])
-              : null,
+    //       wCdPercent:
+    //         row["subtlex_w_cd_percent"]
+    //           ? Number(row["subtlex_w_cd_percent"])
+    //           : null,
 
-          log10CD:
-            row["subtlex_log10cd"]
-              ? Number(row["subtlex_log10cd"])
-              : null,
+    //       log10CD:
+    //         row["subtlex_log10cd"]
+    //           ? Number(row["subtlex_log10cd"])
+    //           : null,
 
-          dominantPos:
-            row["subtlex_dominant_pos"] || null,
+    //       dominantPos:
+    //         row["subtlex_dominant_pos"] || null,
 
-          dominantPosFreq:
-            row["subtlex_dominant_pos_freq"]
-              ? Number(
-                  row["subtlex_dominant_pos_freq"]
-                )
-              : null,
+    //       dominantPosFreq:
+    //         row["subtlex_dominant_pos_freq"]
+    //           ? Number(
+    //               row["subtlex_dominant_pos_freq"]
+    //             )
+    //           : null,
 
-          allPos:
-            row["subtlex_all_pos"] || null,
+    //       allPos:
+    //         row["subtlex_all_pos"] || null,
 
-          allPosFreq:
-            row["subtlex_all_pos_freq"] || null,
+    //       allPosFreq:
+    //         row["subtlex_all_pos_freq"] || null,
 
-          englishTranslate:
-            row["subtlex_eng_tran"] || null,
+    //       englishTranslate:
+    //         row["subtlex_eng_tran"] || null,
 
-          wordNormalized:
-            row["subtlex_word_normalized"] || null,
-        },
-      });
-    }
+    //       wordNormalized:
+    //         row["subtlex_word_normalized"] || null,
+    //     },
+    //   });
+    // }
 
     counter++;
 
@@ -236,13 +233,13 @@ async function main() {
   const totalMeanings =
     await prisma.mandarinMeaning.count();
 
-  const totalSubtlex =
-    await prisma.mandarinSubtlex.count();
+  // const totalSubtlex =
+  //   await prisma.mandarinSubtlex.count();
 
   console.log("\n🎉 Seed completed");
   console.log(`Words    : ${totalWords}`);
   console.log(`Meanings : ${totalMeanings}`);
-  console.log(`Subtlex  : ${totalSubtlex}`);
+  //console.log(`Subtlex  : ${totalSubtlex}`);
 }
 
 main()

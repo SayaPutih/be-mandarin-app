@@ -19,12 +19,18 @@ r_history = sys.argv[1].split(",")
 t_history = sys.argv[2].split(",")
 p_history = sys.argv[3].split(",")
 
-sample = torch.zeros(len(r_history), 1, 3)
+difficulty = float(sys.argv[4])
+
+# sama seperti saat training
+difficulty = difficulty / 10.0
+
+sample = torch.zeros(len(r_history), 1, 4)
 
 for i in range(len(r_history)):
     sample[i][0][0] = float(r_history[i])
     sample[i][0][1] = float(t_history[i])
     sample[i][0][2] = float(p_history[i])
+    sample[i][0][3] = difficulty
 
 hidden = torch.zeros(1, 1, 16)
 
@@ -36,5 +42,3 @@ result = {
 }
 
 print(json.dumps(result))
-
-#python predict.py "1,1,1,0" "0,1,3,7" "0.86,0.88,0.91,0.72"

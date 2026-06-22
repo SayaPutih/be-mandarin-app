@@ -1,6 +1,6 @@
 import prisma from "../config/prisma.js";
 
-export const createFlashCardAttemptLog = async (flashCardAttemptId,isCorrect,answerTimeMs) => {
+export const createFlashCardAttemptLog = async (flashCardAttemptId,isCorrect,answerTimeMs,dateManipulation) => {
 
   console.log("Create Log");
   let attemptLog = await prisma.flashCardAttemptLog.create({
@@ -8,8 +8,10 @@ export const createFlashCardAttemptLog = async (flashCardAttemptId,isCorrect,ans
       flashcardAttemptId: flashCardAttemptId,
       isCorrect,
       answerTimeMs,
+      createdAt: dateManipulation,
     },
   });
 
   return attemptLog.id;
 };
+

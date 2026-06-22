@@ -2,11 +2,13 @@ import {
   GetReviewWords,
   GetMcOptions,
 } from "../../repositories/flash-card/flash-card-question.repository.js";
-
+import { getCurrentSystemDate } from "../../repositories/system-config.repository.js";
 import { shuffle } from "../../utils/shuffle.js";
 
 export const getReviewQuestionService = async (userId) => {
   const reviews = await GetReviewWords(userId);
+
+  const currentDate = await getCurrentSystemDate();
 
   return {
     totalDue: reviews.length,
@@ -30,7 +32,7 @@ export const getReviewQuestionService = async (userId) => {
         ? Math.max(
             0,
             Math.floor(
-              (Date.now() - r.nextReviewAt.getTime()) / (1000 * 60 * 60 * 24),
+              (currentDate.getTime() - r.nextReviewAt.getTime()) / (1000 * 60 * 60 * 24),
             ),
           )
         : 0,

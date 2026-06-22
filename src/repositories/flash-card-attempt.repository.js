@@ -13,17 +13,34 @@ export const findFlashCardAttempt = async (userId, wordId) => {
   });
 };
 
-export const createFlashCardAttempt = async (
-  userId,
-  wordId
-) => {
 
+export const findUserFlashCardInteraction = async (userId) => {
+  return await prisma.flashCardAttempt.count({
+    where: {
+      userId: userId,
+    },
+  });
+};
+
+export const findUserFlashCardInteractionWords = async (userId) => {
+  return await prisma.flashCardAttempt.findMany({
+    where: {
+      userId: userId,
+    },
+  });
+};
+
+
+export const createFlashCardAttempt = async (userId, wordId, dateManipulation) => {
   console.log("Create Attempt");
 
   const attempt = await prisma.flashCardAttempt.create({
     data: {
       userId,
       wordId,
+      createdAt: dateManipulation,
+      lastReviewedAt : dateManipulation,
+      updatedAt : dateManipulation,
     },
   });
 

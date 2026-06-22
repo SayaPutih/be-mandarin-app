@@ -17,7 +17,6 @@ export const MeService = async(id)=>{
   return user;
 }
 
-//kalo mau mising Params gimana ✅
 export const RegisterUserService = async (body) => {
   const { email, password, name } = body;
 
@@ -68,10 +67,11 @@ export const LoginUserService = async (body) => {
     {
       id: exists.id,
       email: exists.email,
+      role: exists.role,
     },
     process.env.SECRET_KEY,
     {
-      expiresIn: "1d",
+      expiresIn: "7d",
     },
   );
 
@@ -108,3 +108,9 @@ export const DeleteUserSerivce = async (id) => {
 
   return true;
 };
+
+
+
+
+
+

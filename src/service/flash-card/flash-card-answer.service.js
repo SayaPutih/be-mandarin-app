@@ -1,8 +1,3 @@
-// import {
-//   GetMcQuestion,
-//   GetMcOptions,
-// } from "../../repositories/flash-card.repository.js";
-
 import { findUserById } from "../../repositories/user.repository.js";
 import { predictHalfLife } from "../../ml/predict-half-life.js";
 import { getMandarinWordById } from "../../repositories/mandarin-word.repository.js";
@@ -14,6 +9,12 @@ import {
 } from "../../repositories/flash-card-attempt.repository.js";
 
 import { createFlashCardAttemptLog } from "../../repositories/flash-card-attempt-log.repository.js";
+import {
+  calculateDeltaDays,
+  appendHistory,
+} from "../../utils/memory-model.util.js";
+
+import { getCurrentSystemDate } from "../../repositories/system-config.repository.js";
 
 import {
   findWordMemoryState,
@@ -21,7 +22,18 @@ import {
   updateWordMemoryState,
 } from "../../repositories/word-memory-state.repository.js";
 
-import { toLowerCase } from "zod";
+function normalizeDifficulty(rawDifficulty) {
+  const MIN = 0;
+  const MAX = 0.0155;
+
+  const normalized =
+    ((rawDifficulty - MIN) / (MAX - MIN)) * 9 + 1;
+
+  return Math.max(
+    1,
+    Math.min(10, normalized),
+  );
+}
 
 export const answerFlashCardQuestionsService = async (
   userId,
@@ -30,6 +42,15 @@ export const answerFlashCardQuestionsService = async (
   expected_answer,
   answerTimeMs,
 ) => {
+  const now = await getCurrentSystemDate();
+  console.log("NOW : " + now);
+  console.log(now);
+  console.log(typeof now);
+  console.log(now instanceof Date);
+
+
+  
+
   const user = await findUserById(userId);
 
   if (!user) {
@@ -47,10 +68,10 @@ export const answerFlashCardQuestionsService = async (
 
   let attempt = await findFlashCardAttempt(userId, wordId);
   if (!attempt) {
-    attempt = await createFlashCardAttempt(userId, wordId);
+    attempt = await createFlashCardAttempt(userId, wordId, now);
   }
 
-  await createFlashCardAttemptLog(attempt.id, isCorrect, answerTimeMs);
+  await createFlashCardAttemptLog(attempt.id, isCorrect, answerTimeMs, now);
 
   const totalReviews = attempt.totalReviews + 1;
   const correctReviews = attempt.correctReviews + (isCorrect ? 1 : 0);
@@ -63,77 +84,90 @@ export const answerFlashCardQuestionsService = async (
     correctReviews,
     averageAnswerTimeMs,
     lastAnswerCorrect: isCorrect,
-    lastReviewedAt: new Date(),
+    lastReviewedAt: now,
+    updatedAt: now,
   });
 
   // =========================
   // MEMORY STATE
   // =========================
 
-  let memoryState = await findWordMemoryState(userId, wordId);
-  console.log(memoryState);
-
-  if (!memoryState) {
-    memoryState = await createWordMemoryState(userId, wordId);
+    let memoryState = await findWordMemoryState(userId, wordId);
     console.log(memoryState);
-  }
 
-  const now = new Date();
+    if (!memoryState) {
+      memoryState = await createWordMemoryState(userId, wordId,now);
+      console.log(memoryState);
+    }
 
-  let deltaDays = 0;
+    console.log("Delta Days");
+    console.log(memoryState.lastReviewAt);
+    console.log(typeof memoryState.lastReviewAt);
+    console.log(memoryState.lastReviewAt instanceof Date);
 
-  if (memoryState?.lastReviewAt) {
-    deltaDays = Math.max(
-      1,
-      Math.round(
-        (now.getTime() - memoryState.lastReviewAt.getTime()) /
-          (1000 * 60 * 60 * 24),
-      ),
-    );
-  }
-
-  const newRHistory = memoryState?.rHistory
-    ? `${memoryState.rHistory},${isCorrect ? 1 : 0}`
-    : `${isCorrect ? 1 : 0}`;
-
-  const newTHistory = memoryState?.tHistory
-    ? `${memoryState.tHistory},${deltaDays}`
-    : "0";
-
-  let currentPRecall = 0.86;
-
-  if (
-    memoryState?.predictedRecall !== null &&
-    memoryState?.predictedRecall !== undefined
-  ) {
-    currentPRecall = memoryState.predictedRecall;
-  }
-
-  const newPHistory = memoryState?.pHistory
-    ? `${memoryState.pHistory},${currentPRecall}`
-    : `${currentPRecall}`;
+    const deltaDays = calculateDeltaDays(memoryState.lastReviewAt, now);
     
+    const newRHistory = appendHistory(memoryState.rHistory, isCorrect ? 1 : 0);
+
+    const newTHistory = appendHistory(memoryState.tHistory, deltaDays);
+
+    //Mai Memo punya p_history hasil observasi ini masih bootstrap
+    //const currentPRecall = memoryState.predictedRecallBeforeReview ?? 0.86;
+    let currentPRecall;
+
+    if (isCorrect) {
+      currentPRecall = 0.9;
+    } else {
+      currentPRecall = 0.4;
+    }
+
+    const newPHistory = appendHistory(memoryState.pHistory, currentPRecall);
+    
+    // const predictedHalfLife =
+    //   await predictHalfLife(
+    //     newRHistory,
+    //     newTHistory,
+    //     newPHistory,
+    //   );
+    
+    
+    // //const predictedRecall = Math.pow(2, -(deltaDays / predictedHalfLife));
+    // const predictedRecall = 1.0;
+
+    // const targetRecall = 0.9;
+
+    const rawDifficulty = word.lexicalDifficulty ?? 0.01;
+
+    const wordDifficulty = normalizeDifficulty(rawDifficulty);
 
     const predictedHalfLife = await predictHalfLife(
       newRHistory,
       newTHistory,
       newPHistory,
+      wordDifficulty,
     );
 
-    console.log(predictedHalfLife);
+    const predictedRecall = Math.pow(2, -(deltaDays / predictedHalfLife));
 
-    const predictedRecall = Math.pow(2, -(1 / predictedHalfLife));
-    console.log({
-      r: newRHistory.split(",").length,
-      t: newTHistory.split(",").length,
-      p: newPHistory.split(",").length,
-    });
+    const targetRecall = 0.9;
+
+    const nextReviewDays =
+      (predictedHalfLife * Math.log(targetRecall)) / Math.log(0.5);
 
     const nextReviewAt = new Date(now);
 
     nextReviewAt.setDate(
-      nextReviewAt.getDate() + Math.max(1, Math.round(predictedHalfLife)),
+      nextReviewAt.getDate() + Math.max(1, Math.round(nextReviewDays)),
     );
+
+    //const wordDifficulty = word.lexicalDifficulty ?? 0.5;
+    console.log("---ASNWERING----")
+    console.log({
+      predictedHalfLife,
+      predictedRecall,
+      nextReviewAt,
+      difficulty: wordDifficulty,
+    });
 
     await updateWordMemoryState(memoryState.id, {
       reviewCount: memoryState.reviewCount + 1,
@@ -142,13 +176,17 @@ export const answerFlashCardQuestionsService = async (
       tHistory: newTHistory,
       pHistory: newPHistory,
 
+      wordDifficulty: wordDifficulty,
+
       predictedHalfLife,
       predictedRecall,
+
+      nextReviewAt,
+
 
       lastReviewAt: now,
       lastAnswerTimeMs: answerTimeMs,
       averageAnswerTimeMs,
-      difficulty,
     });
 
     console.log({
@@ -156,8 +194,12 @@ export const answerFlashCardQuestionsService = async (
       correctMeaning: expected_answer,
     });
 
+    console.log("ANSWER:", answer);
+    console.log("EXPECTED:", expected_answer);
+    console.log("ISCORRECT:", isCorrect);
+
     return {
       isCorrect,
       correctMeaning: expected_answer,
     };
-};;
+};
