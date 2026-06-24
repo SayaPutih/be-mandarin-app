@@ -13,7 +13,9 @@ export const predictHalfLife = (rHistory, tHistory, pHistory, difficulty) => {
       difficulty,
     });
 
-    const python = spawn("python", [
+    const PYTHON_CMD = process.platform === "win32" ? "python" : "python3";
+
+    const python = spawn(PYTHON_CMD, [
       scriptPath,
       rHistory,
       tHistory,
