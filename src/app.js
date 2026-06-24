@@ -31,7 +31,7 @@ app.use(
 app.use(express.json())
 app.use("/ping", async (req,res)=>{
     try{
-        return res.status(200).json("Pong!")
+        return res.status(200).json("Ponger!")
     }catch(err){
         return res.status(500).json({message : err.message})
     }
