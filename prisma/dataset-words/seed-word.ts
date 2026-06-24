@@ -14,7 +14,7 @@ async function loadCsv(): Promise<CsvRow[]> {
     process.cwd(),
     "prisma",
     "dataset-words",
-    "mandarin_word_dataset_final_With_difficulty.csv"
+    "mandarin_words.xlsx"
   );
 
   await new Promise<void>((resolve, reject) => {
@@ -55,19 +55,20 @@ async function main() {
 
   console.log("📥 Inserting words...");
 
-  for (const row of rows) {
-    const simplified = row["simplified"]?.trim();
+for (const row of rows) {
+  const simplified = row["simplified"]?.trim();
 
-    if (!simplified) {
-      continue;
-    }
+  if (!simplified) {
+    continue;
+  }
 
-    const word = await prisma.mandarinWord.create({
+  const word =
+    await prisma.mandarinWord.create({
       data: {
         simplified,
 
         pinyin:
-          row["pinyin"] || "",
+          row["pinyin_tone"] || "",
 
         pos:
           row["pos"] || null,
@@ -76,11 +77,13 @@ async function main() {
           row["radical"] || null,
 
         hskLevel:
-          Number(row["hsk_level"]) || 0,
+          Number(row["hskLevel"]) || 0,
 
         lexicalDifficulty:
-          row["Difficulty_Human_PCA"]
-            ? Number(row["Difficulty_Human_PCA"])
+          row["lexicalDifficulty"]
+            ? Number(
+                row["lexicalDifficulty"]
+              )
             : null,
       },
 
@@ -89,107 +92,25 @@ async function main() {
       },
     });
 
-    // =====================
-    // DRKAMELOEN MEANINGS
-    // =====================
+  const meanings =
+    row["english"]
+      ?.split(/\s*;\s*/)
+      .map((m) => m.trim())
+      .filter(Boolean) ?? [];
 
-    const meanings =
-      row["meaning"]
-        ?.split(/\s*;\s*/)
-        .map((m) => m.trim())
-        .filter(Boolean) ?? [];
+  createdWords.push({
+    id: word.id,
+    meanings,
+  });
 
-    createdWords.push({
-      id: word.id,
-      meanings,
-    });
+  counter++;
 
-    // // =====================
-    // // SUBTLEX
-    // // =====================
-
-    // if (row["subtlex_word"]) {
-    //   await prisma.mandarinSubtlex.create({
-    //     data: {
-    //       wordId: word.id,
-
-    //       wordRaw:
-    //         row["subtlex_word"] || null,
-
-    //       length:
-    //         row["subtlex_length"]
-    //           ? Number(row["subtlex_length"])
-    //           : null,
-
-    //       pinyin:
-    //         row["subtlex_pinyin"] || null,
-
-    //       pinyinInput:
-    //         row["subtlex_pinyin_input"] || null,
-
-    //       wCount:
-    //         row["subtlex_w_count"]
-    //           ? Number(row["subtlex_w_count"])
-    //           : null,
-
-    //       wMillion:
-    //         row["subtlex_w_million"]
-    //           ? Number(row["subtlex_w_million"])
-    //           : null,
-
-    //       log10W:
-    //         row["subtlex_log10w"]
-    //           ? Number(row["subtlex_log10w"])
-    //           : null,
-
-    //       wCd:
-    //         row["subtlex_w_cd"]
-    //           ? Number(row["subtlex_w_cd"])
-    //           : null,
-
-    //       wCdPercent:
-    //         row["subtlex_w_cd_percent"]
-    //           ? Number(row["subtlex_w_cd_percent"])
-    //           : null,
-
-    //       log10CD:
-    //         row["subtlex_log10cd"]
-    //           ? Number(row["subtlex_log10cd"])
-    //           : null,
-
-    //       dominantPos:
-    //         row["subtlex_dominant_pos"] || null,
-
-    //       dominantPosFreq:
-    //         row["subtlex_dominant_pos_freq"]
-    //           ? Number(
-    //               row["subtlex_dominant_pos_freq"]
-    //             )
-    //           : null,
-
-    //       allPos:
-    //         row["subtlex_all_pos"] || null,
-
-    //       allPosFreq:
-    //         row["subtlex_all_pos_freq"] || null,
-
-    //       englishTranslate:
-    //         row["subtlex_eng_tran"] || null,
-
-    //       wordNormalized:
-    //         row["subtlex_word_normalized"] || null,
-    //     },
-    //   });
-    // }
-
-    counter++;
-
-    if (counter % 500 === 0) {
-      console.log(
-        `Inserted ${counter}/${rows.length}`
-      );
-    }
+  if (counter % 500 === 0) {
+    console.log(
+      `Inserted ${counter}/${rows.length}`
+    );
   }
+}
 
   console.log("📥 Inserting meanings...");
 

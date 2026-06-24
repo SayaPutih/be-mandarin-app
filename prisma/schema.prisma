@@ -50,6 +50,7 @@ model MandarinMeaning {
   @@index([wordId])
 }
 
+
 model FlashCardAttempt {
   id                  String                @id @default(uuid())
   userId              String

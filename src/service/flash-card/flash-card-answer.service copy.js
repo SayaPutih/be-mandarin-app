@@ -100,36 +100,41 @@ export const answerFlashCardQuestionsService = async (
     console.log(memoryState.lastReviewAt instanceof Date);
 
     const deltaDays = calculateDeltaDays(memoryState.lastReviewAt, now);
-
+    
     const newRHistory = appendHistory(memoryState.rHistory, isCorrect ? 1 : 0);
 
     const newTHistory = appendHistory(memoryState.tHistory, deltaDays);
 
-    // =========================
-    // Recall sebelum review
-    // =========================
+    //Mai Memo punya p_history hasil observasi ini masih bootstrap
+    //const currentPRecall = memoryState.predictedRecallBeforeReview ?? 0.86;
+    const currentPRecall = memoryState.predictedRecall ?? 0.86;
+    
 
-    const previousHalfLife = memoryState.predictedHalfLife ?? 1;
+    // if (isCorrect) {
+    //   currentPRecall = 0.9;
+    // } else {
+    //   currentPRecall = 0.4;
+    // }
 
-    const recallBeforeReview = Math.pow(2, -(deltaDays / previousHalfLife));
+    const newPHistory = appendHistory(memoryState.pHistory, currentPRecall);
+    
+    // const predictedHalfLife =
+    //   await predictHalfLife(
+    //     newRHistory,
+    //     newTHistory,
+    //     newPHistory,
+    //   );
+    
+    
+    // //const predictedRecall = Math.pow(2, -(deltaDays / predictedHalfLife));
+    // const predictedRecall = 1.0;
 
-    const newPHistory = appendHistory(memoryState.pHistory, recallBeforeReview);
-
-    // =========================
-    // Difficulty
-    // =========================
+    // const targetRecall = 0.9;
 
     const rawDifficulty = word.lexicalDifficulty ?? 1;
 
-    // kalau model GRU dilatih pakai lexicalDifficulty asli
+    //const wordDifficulty = normalizeDifficulty(rawDifficulty);
     const wordDifficulty = rawDifficulty;
-
-    // kalau model dilatih pakai skala 1-10
-    // const wordDifficulty = normalizeDifficulty(rawDifficulty);
-
-    // =========================
-    // Predict Half Life
-    // =========================
 
     const predictedHalfLife = await predictHalfLife(
       newRHistory,
@@ -137,13 +142,11 @@ export const answerFlashCardQuestionsService = async (
       newPHistory,
       wordDifficulty,
     );
+    const previousHalfLife = memoryState.predictedHalfLife ?? 1;
 
-    // estimasi recall setelah update model
+    const recallBeforeReview = Math.pow(2, -(deltaDays / previousHalfLife));
+
     const predictedRecall = Math.pow(2, -(deltaDays / predictedHalfLife));
-
-    // =========================
-    // Scheduling
-    // =========================
 
     const targetRecall = 0.8;
 
@@ -156,11 +159,9 @@ export const answerFlashCardQuestionsService = async (
       nextReviewAt.getDate() + Math.max(1, Math.round(nextReviewDays)),
     );
 
-    console.log("---ANSWERING----");
-
+    //const wordDifficulty = word.lexicalDifficulty ?? 0.5;
+    console.log("---ASNWERING----")
     console.log({
-      deltaDays,
-      recallBeforeReview,
       predictedHalfLife,
       predictedRecall,
       nextReviewAt,
@@ -174,14 +175,13 @@ export const answerFlashCardQuestionsService = async (
       tHistory: newTHistory,
       pHistory: newPHistory,
 
-      wordDifficulty,
-
-      //recallBeforeReview,
+      wordDifficulty: wordDifficulty,
 
       predictedHalfLife,
       predictedRecall,
 
       nextReviewAt,
+
 
       lastReviewAt: now,
       lastAnswerTimeMs: answerTimeMs,

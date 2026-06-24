@@ -43,20 +43,20 @@ export const GetNotificationController = async (req,res)=>{
             });
         }
 
-        if(newUser.total < 20){
-            return res.status(200).json({
-              success: true,
-              data: {
-                title: "Welcome to Mandarin LMS",
-                message:
-                  "Complete the placement test to determine your starting level.",
-                label: "Initiate Your Scoring",
-                isNotif: true,
-                type: 1,
-                total: newUser.total,
-              },
-            });
-        }
+        // if(newUser.total < 20){
+        //     return res.status(200).json({
+        //       success: true,
+        //       data: {
+        //         title: "Welcome to Mandarin LMS",
+        //         message:
+        //           "Complete the placement test to determine your starting level.",
+        //         label: "Initiate Your Scoring",
+        //         isNotif: true,
+        //         type: 1,
+        //         total: newUser.total,
+        //       },
+        //     });
+        // }
 
         return res.status(200).json({
           success: true,
