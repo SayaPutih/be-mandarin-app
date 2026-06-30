@@ -39,7 +39,7 @@ app.use("/ping", async (req,res)=>{
     }
 });
 
-app.use("/ping/:name", async (req,res)=>{
+app.use("/query/:name", async (req,res)=>{
     try{
         return res.status(200).json(`Query : ${req.params.name}`)
     }catch(err){
