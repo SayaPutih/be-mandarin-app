@@ -8,9 +8,12 @@ import { getReviewQuestionService } from "../../service/flash-card/flash-card-re
 
 export const getFlashCardQuestionsController = async (req, res) => {
   try {
+    const hskLevel = Number(req.query.hskLevel);
+
+
     const flashCardMcQuestionArray = [];
     for (let i = 0; i < 10; i++) {
-      let flashCardMcQuestion = await getFlashCardQuestionsService();
+      let flashCardMcQuestion = await getFlashCardQuestionsService(hskLevel);
       flashCardMcQuestionArray.push(flashCardMcQuestion);
     }
 

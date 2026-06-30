@@ -6,9 +6,19 @@ import {
 } from "../../repositories/flash-card/flash-card-question.repository.js";
 import { shuffle } from "../../utils/shuffle.js";
 
-export const getFlashCardQuestionsService = async () => {
+export const getFlashCardQuestionsService = async (hskLevel) => {
 
-    const flashCardHanzi = await GetMcQuestion();
+    const flashCardHanzi = await GetMcQuestion(hskLevel);
+
+    console.log("HSK:", hskLevel);
+
+    console.log("QUESTION:", flashCardHanzi);
+
+    if (!flashCardHanzi) {
+      throw new Error(`No flashcard found for HSK ${hskLevel}`);
+    }
+
+    
     const options = await GetMcOptions(flashCardHanzi.id, 3);
 
     console.log(flashCardHanzi);

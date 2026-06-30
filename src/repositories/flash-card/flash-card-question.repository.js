@@ -1,31 +1,60 @@
 import prisma from "../../config/prisma.js";
 import { getCurrentSystemDate } from "../system-config.repository.js";
 
-export const GetMcQuestion = async ()=>{
+// export const GetMcQuestion = async (hskLevel) => {
+//   const result = await prisma.$queryRaw`
+//         SELECT
+//             mw.id,
+//             mw.simplified,
+//             mw.pinyin,
+//             mw."hskLevel",
+//             STRING_AGG(mm.meaning, '=|=') AS meanings,
+//             mw."lexicalDifficulty"
+//         FROM "MandarinWord" mw
+//         LEFT JOIN "MandarinMeaning" mm
+//             ON mm."wordId" = mw.id
+//         GROUP BY
+//             mw.id,
+//             mw.simplified,
+//             mw.pinyin,
+//             mw."hskLevel"
+//         ORDER BY RANDOM()
+//         LIMIT 1;
+//     `;
+
+//   return result[0];
+// };
 
 
-    const result = await prisma.$queryRaw`
-        SELECT
-            mw.id,
-            mw.simplified,
-            mw.pinyin,
-            mw."hskLevel",
-            STRING_AGG(mm.meaning, '=|=') AS meanings,
-            mw."lexicalDifficulty"
-        FROM "MandarinWord" mw
-        LEFT JOIN "MandarinMeaning" mm
-            ON mm."wordId" = mw.id
-        GROUP BY
-            mw.id,
-            mw.simplified,
-            mw.pinyin,
-            mw."hskLevel"
-        ORDER BY RANDOM()
-        LIMIT 1;
+export const GetMcQuestion = async (hskLevel) => {
+  const result = await prisma.$queryRaw`
+      SELECT
+          mw.id,
+          mw.simplified,
+          mw.pinyin,
+          mw."hskLevel",
+          STRING_AGG(
+            mm.meaning,
+            '=|='
+          ) AS meanings,
+          mw."lexicalDifficulty"
+      FROM "MandarinWord" mw
+      LEFT JOIN "MandarinMeaning" mm
+          ON mm."wordId" = mw.id
+      WHERE mw."hskLevel" = ${hskLevel}
+      GROUP BY
+          mw.id,
+          mw.simplified,
+          mw.pinyin,
+          mw."hskLevel",
+          mw."lexicalDifficulty"
+      ORDER BY RANDOM()
+      LIMIT 1;
     `;
 
-    return result[0];
-}
+  return result[0];
+};
+
 
 export const GetMcQuestionById = async (wordId) => {
   const result = await prisma.$queryRaw`

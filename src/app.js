@@ -10,6 +10,8 @@ import adminRouter from "./routes/admin.route.js";
 import studentRouter from "./routes/student.route.js";
 
 import newInitiateRouter from "./routes/NEW/Initiate/initiate.route.js"
+import recomendRouter from "./routes/recom.route.js";
+import scheduleRouter from "./routes/schedule.route.js"
 
 import cors from "cors";
 
@@ -37,6 +39,14 @@ app.use("/ping", async (req,res)=>{
     }
 });
 
+app.use("/ping/:name", async (req,res)=>{
+    try{
+        return res.status(200).json(`Query : ${req.params.name}`)
+    }catch(err){
+        return res.status(500).json({message : err.message})
+    }
+});
+
 app.use("/new/initiate", newInitiateRouter);
 
 app.use("/auth",authRoute)
@@ -48,5 +58,7 @@ app.use("/notification", notificationRouter);
 app.use("/teacher", teacherRouter);
 app.use("/admin", adminRouter);
 app.use("/student", studentRouter);
+app.use("/recom", recomendRouter);
+app.use("/review", scheduleRouter);
 
 export default app;
