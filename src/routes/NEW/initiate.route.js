@@ -1,10 +1,10 @@
-import { validateToken } from "../../../middleware/validateToken.js";
+import { validateToken } from "../../middleware/validateToken.js";
 import {
   findUserFlashCardInteractionWords,
   GetInitiation,
   GetMcOptions,
-} from "./repo.js";
-import { shuffle } from "../../../utils/shuffle.js";
+} from "../../repositories/initiate.repository.js"; 
+import { shuffle } from "../../utils/shuffle.js";
 import express from "express";
 
 const router = express.Router();
@@ -99,19 +99,3 @@ router.get("/new-initiate",validateToken, async (req,res)=>{
 
 export default router;
 
-
-//Initiate
-//Asnwer
-//Review
-
-//Bab 1
-//Bab2 Quesiton
-//blackBox
-//Get Question
-
-//Insert Database 
-
-//Flowchart
-//Low Fid
-
-//High Fid

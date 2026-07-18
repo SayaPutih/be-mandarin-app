@@ -1,6 +1,29 @@
 import prisma from "../../config/prisma.js";
 import { getCurrentSystemDate } from "../system-config.repository.js";
 
+export const GetWordsByIds = async (wordIds) => {
+  return await prisma.mandarinWord.findMany({
+    where: {
+      id: {
+        in: wordIds,
+      },
+    },
+    include: {
+      meanings: true,
+    },
+  });
+};
+
+export const GetMcOptionsByWordIds = async (excludedWordId, limit) => {
+  return prisma.$queryRaw`
+    SELECT meaning
+    FROM "MandarinMeaning"
+    WHERE "wordId" <> ${excludedWordId}
+    ORDER BY RANDOM()
+    LIMIT ${limit};
+  `;
+};
+
 // export const GetMcQuestion = async (hskLevel) => {
 //   const result = await prisma.$queryRaw`
 //         SELECT
@@ -24,7 +47,6 @@ import { getCurrentSystemDate } from "../system-config.repository.js";
 
 //   return result[0];
 // };
-
 
 export const GetMcQuestion = async (hskLevel) => {
   const result = await prisma.$queryRaw`
@@ -55,7 +77,6 @@ export const GetMcQuestion = async (hskLevel) => {
   return result[0];
 };
 
-
 export const GetMcQuestionById = async (wordId) => {
   const result = await prisma.$queryRaw`
         SELECT
@@ -84,20 +105,17 @@ export const GetMcQuestionById = async (wordId) => {
   return result[0];
 };
 
-
-
-export const GetMcOptions = async (id,limit)=>{
-    return await prisma.$queryRaw`
+export const GetMcOptions = async (id, limit) => {
+  return await prisma.$queryRaw`
         select 
             meaning
         from "MandarinMeaning" 
         where "wordId" <> ${id}
         order by RANDOM() limit ${limit}
     `;
-}
+};
 
 export const GetReviewWords = async (userId) => {
-
   const currentDate = await getCurrentSystemDate();
 
   return prisma.wordMemoryState.findMany({
@@ -120,11 +138,7 @@ export const GetReviewWords = async (userId) => {
   });
 };
 
-
-export const GetInitiation = async (
-  listWords,
-  limit
-) => {
+export const GetInitiation = async (listWords, limit) => {
   return prisma.mandarinWord.findMany({
     where: {
       id: {

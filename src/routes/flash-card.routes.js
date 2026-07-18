@@ -4,6 +4,7 @@ import {
   getReviewWordsController,
   getReviewQuestionController,
   getFlashCardInitiationController,
+  getFlashCardAssignmentController,
 } from "../controller/flash-card/flash-card-question.controller.js";
 import { answerFlashCardController } from "../controller/flash-card/flash-card-answer.controller.js";
 
@@ -18,5 +19,6 @@ router.get("/review", validateToken, getReviewWordsController);
 router.get("/questions/review", validateToken, getReviewQuestionController);
 router.post("/answer",validateToken,answerFlashCardController)
 router.get("/initiate", validateToken, getFlashCardInitiationController);
+router.post("/assignment", validateToken, getFlashCardAssignmentController);
 
 export default router;

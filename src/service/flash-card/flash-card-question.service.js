@@ -3,8 +3,46 @@ import {
   GetMcOptions,
   GetReviewWords,
   GetMcQuestionById,
+  GetMcOptionsByWordIds,
+  GetWordsByIds,
 } from "../../repositories/flash-card/flash-card-question.repository.js";
+
 import { shuffle } from "../../utils/shuffle.js";
+
+export const getFlashCardAssignmentQuestionsService = async (wordIds) => {
+  const words = await GetWordsByIds(wordIds);
+
+  const flashcards = [];
+
+  for (const word of words) {
+    const meanings = word.meanings.map((m) => m.meaning);
+
+    const correctMeaning =
+      meanings[Math.floor(Math.random() * meanings.length)];
+
+    const options = await GetMcOptionsByWordIds(word.id, 3);
+
+    flashcards.push({
+      id: word.id,
+
+      hanzi: word.simplified,
+
+      pinyin: word.pinyin,
+
+      meaning: meanings,
+
+      options: shuffle([correctMeaning, ...options.map((o) => o.meaning)]),
+
+      hsk_level: word.hskLevel,
+
+      difficulty: word.lexicalDifficulty,
+
+      expected_answer: correctMeaning,
+    });
+  }
+
+  return flashcards;
+};
 
 export const getFlashCardQuestionsService = async (hskLevel) => {
 

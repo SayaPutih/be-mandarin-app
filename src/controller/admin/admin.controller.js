@@ -10,7 +10,7 @@ import {
 export const findAllUserController = async (req, res) => {
   try {
     const page = req.query.page || 1;
-    const limit = req.query.limit || 10;
+    const limit = req.query.limit || 5;
 
     const result = await findAllUserService(page, limit);
 

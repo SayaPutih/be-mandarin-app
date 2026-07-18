@@ -3,8 +3,28 @@ import {
   getFlashCardQuestionsService,
   getFlashCardReviewQuestionsService,
   getFlashCardIntitateService,
+  getFlashCardAssignmentQuestionsService,
 } from "../../service/flash-card/flash-card-question.service.js";
 import { getReviewQuestionService } from "../../service/flash-card/flash-card-review.service.js";
+
+export const getFlashCardAssignmentController = async (req, res) => {
+  try {
+    console.log("FlashCard ASsignment Controller")
+    console.log(req.body);
+    const { wordIds } = req.body;
+
+    const flashcards = await getFlashCardAssignmentQuestionsService(wordIds);
+
+    return res.status(200).json({
+      success: true,
+      data: flashcards,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: err.message,
+    });
+  }
+};
 
 export const getFlashCardQuestionsController = async (req, res) => {
   try {

@@ -44,6 +44,8 @@ CREATE TABLE "SystemConfig" (
   "currentReviewDate" TIMESTAMP
 );
 
+ALTER TABLE "User" 
+
 INSERT INTO "User"
 (
   id,

@@ -1,5 +1,5 @@
-import prisma from "../../../config/prisma.js";
-import { getCurrentSystemDate } from "../../../repositories/system-config.repository.js";
+import prisma from "../config/prisma.js";
+import { getCurrentSystemDate } from "../repositories/system-config.repository.js";
 
 
 export const GetMcOptions = async (id, limit) => {

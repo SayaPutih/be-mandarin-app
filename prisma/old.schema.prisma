@@ -14,18 +14,15 @@ enum Role {
 }
 
 model User {
-  id                   String               @id @default(uuid())
-  email                String               @unique
-  name                 String?
-  password             String
-  created_at           DateTime             @default(now())
-  updated_at           DateTime             @updatedAt
-  role                 Role                 @default(USER)
-  attempts             FlashCardAttempt[]
-  memoryStates         WordMemoryState[]
-  classes              Class[]              @relation("TeacherClasses")
-  enrollments          Enrollment[]
-  assignmentProgresses AssignmentProgress[]
+  id           String             @id @default(uuid())
+  email        String             @unique
+  name         String?
+  password     String
+  created_at   DateTime           @default(now())
+  updated_at   DateTime           @updatedAt
+  role         Role               @default(USER)
+  attempts     FlashCardAttempt[]
+  memoryStates WordMemoryState[]
 }
 
 model MandarinWord {
@@ -40,7 +37,6 @@ model MandarinWord {
   attempts          FlashCardAttempt[]
   meanings          MandarinMeaning[]
   memoryStates      WordMemoryState[]
-  assignmentCards   AssignmentCard[]
 
   @@index([hskLevel])
 }
@@ -53,6 +49,7 @@ model MandarinMeaning {
 
   @@index([wordId])
 }
+
 
 model FlashCardAttempt {
   id                  String                @id @default(uuid())
@@ -114,102 +111,4 @@ model WordMemoryState {
 model SystemConfig {
   id                String    @id @default(uuid()) @db.Uuid
   currentReviewDate DateTime? @db.Timestamp(6)
-}
-
-model Class {
-  id          String  @id @default(uuid())
-  name        String
-  description String?
-
-  teacherId String
-
-  enrollments Enrollment[]
-  assignments Assignment[]
-  teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([teacherId])
-}
-
-model Enrollment {
-  id String @id @default(uuid())
-
-  classId   String
-  studentId String
-
-  class   Class @relation(fields: [classId], references: [id], onDelete: Cascade)
-  student User  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  joinedAt DateTime @default(now())
-
-  @@unique([classId, studentId])
-  @@index([classId])
-  @@index([studentId])
-}
-
-model Assignment {
-  id String @id @default(uuid())
-
-  title       String
-  description String?
-
-  classId String
-  class   Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
-
-  dueDate DateTime?
-
-  createdAt  DateTime             @default(now())
-  updatedAt  DateTime             @updatedAt
-  progresses AssignmentProgress[]
-
-  assignmentCards AssignmentCard[]
-
-  @@index([classId])
-}
-
-model AssignmentCard {
-  id String @id @default(uuid())
-
-  assignmentId String
-  wordId       String
-
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-
-  word MandarinWord @relation(fields: [wordId], references: [id])
-
-  @@unique([assignmentId, wordId])
-  @@index([assignmentId])
-  @@index([wordId])
-}
-
-enum AssignmentStatus {
-  NOT_STARTED
-  IN_PROGRESS
-  COMPLETED
-}
-
-model AssignmentProgress {
-  id String @id @default(uuid())
-
-  assignmentId String
-  studentId    String
-
-  status AssignmentStatus @default(NOT_STARTED)
-
-  completedCards       Int   @default(0)
-  completionPercentage Float @default(0)
-
-  startedAt   DateTime?
-  completedAt DateTime?
-
-  assignment Assignment @relation(fields: [assignmentId], references: [id])
-  student    User       @relation(fields: [studentId], references: [id])
-
-  updatedAt DateTime @updatedAt
-
-  @@unique([assignmentId, studentId])
-  @@index([assignmentId])
-  @@index([studentId])
 }
