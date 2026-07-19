@@ -1,11 +1,31 @@
 import prisma from "../config/prisma.js"
 import bcrypt from "bcrypt";
 
-export const findAllUser = async (page = 1, limit = 10) => {
+export const findAllUser = async (page = 1, limit = 10, search = "") => {
   const skip = (page - 1) * limit;
+
+  const where = search
+    ? {
+        OR: [
+          {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+          {
+            email: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        ],
+      }
+    : {};
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({
+      where,
       skip,
       take: limit,
       select: {
@@ -20,7 +40,9 @@ export const findAllUser = async (page = 1, limit = 10) => {
       },
     }),
 
-    prisma.user.count(),
+    prisma.user.count({
+      where,
+    }),
   ]);
 
   return {
@@ -66,7 +88,6 @@ export const findUserByEmail = async (email)=>{
 }
 
 export const updateUser = async (id,body)=>{
-
     const conflict = await prisma.user.findFirst({
         where : {
             email : body.email,
@@ -75,7 +96,6 @@ export const updateUser = async (id,body)=>{
             }
         }
     })
-
     if(conflict) return false 
 
     return await prisma.user.update({
@@ -85,8 +105,6 @@ export const updateUser = async (id,body)=>{
         data : body
     })
 }
-
-
 
 export const deleteUser = async (id)=>{
 
@@ -108,7 +126,6 @@ export const deleteUser = async (id)=>{
         }
     })
 }
-
 
 export const getUserHalfLife = async (id)=>{
     return 0

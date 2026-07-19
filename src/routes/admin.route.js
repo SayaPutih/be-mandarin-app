@@ -4,7 +4,7 @@ import {
   createTeacherController,
   updateUserController,
   deleteUserController,
-} from "../controller/admin/admin.controller.js";
+} from "../controller/admin.controller.js";
 
 import { validateToken } from "../middleware/validateToken.js";
 import { validateAdmin } from "../middleware/validateAdmin.js";

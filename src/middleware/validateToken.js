@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 export const validateToken = async (req,res,next)=>{
     try{
       const token = req.headers.authorization;
-      console.log("AUTH HEADER =", token);
+      //console.log("AUTH HEADER =", token);
 
       
       if (!token) {
@@ -16,8 +16,8 @@ export const validateToken = async (req,res,next)=>{
 
       req.user = decoded;
 
-      console.log("----MIDDLEWARE----");
-      console.log(req.user);
+      //console.log("----MIDDLEWARE----");
+      //console.log(req.user);
 
       next();
     }catch(err){
